@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genshin Talent Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #38b2ac;
+            cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #38b2ac;
+            cursor: pointer;
+        }
+        
+        .talent-card {
+            transition: all 0.2s ease;
+        }
+        
+        .talent-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .result-item {
+            animation: fadeIn 0.3s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .preset-character {
+            transition: all 0.2s ease;
+        }
+        
+        .preset-character:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <span class="text-amber-500"><i class="fas fa-crown mr-2"></i>Genshin</span>
+                <span class="text-blue-500">Talent Planner</span>
+            </h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                Calculate exactly how many materials you need to upgrade your character's talents and ascension!
+            </p>
+        </header>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Left Panel - Inputs -->
+            <div class="w-full lg:w-1/3 bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800">
+                        <i class="fas fa-sliders-h text-blue-500 mr-2"></i>
+                        Planner Settings
+                    </h2>
+                    <button id="resetBtn" class="text-red-500 hover:text-red-700 transition">
+                        <i class="fas fa-redo-alt mr-1"></i> Reset
+                    </button>
+                </div>
+
+                <!-- Character Name Input -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Character Name</label>
+                    <input id="characterName" type="text" placeholder="Enter character name" 
+                           class="w-full py-2 px-3 border border-gray-300 rounded-md text-sm focus:ring-teal-500 focus:border-teal-500">
+                </div>
+
+                <!-- Current & Target Character Level -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Current Level</label>
+                        <select id="currentLevel" class="w-full py-2 px-3 border border-gray-300 rounded-md text-sm">
+                            <option value="1">1</option>
+                            <option value="20">20</option>
+                            <option value="40">40</option>
+                            <option value="50">50</option>
+                            <option value="60">60</option>
+                            <option value="70">70</option>
+                            <option value="80">80</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Target Level</label>
+                        <select id="targetLevel" class="w-full py-2 px-3 border border-gray-300 rounded-md text-sm">
+                            <option value="20">20</option>
+                            <option value="40">40</option>
+                            <option value="50">50</option>
+                            <option value="60">60</option>
+                            <option value="70">70</option>
+                            <option value="80">80</option>
+                            <option value="90" selected>90</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Talent Cards -->
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Talent Levels</h3>
+                    
+                    <!-- Normal Attack -->
+                    <div class="talent-card bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                        <div class="flex items-center mb-3">
+                            <div class="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center text-white mr-3">
+                                <i class="fas fa-swords"></i>
+                            </div>
+                            <span class="font-medium text-gray-800">Normal Attack</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Current</label>
+                                <select id="currentNormalAttack" class="w-full py-1 px-2 border border-gray-300 rounded-md text-sm">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Target</label>
+                                <select id="targetNormalAttack" class="w-full py-1 px-2 border border-gray-300 rounded-md text-sm">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10" selected>10</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Elemental Skill -->
+                    <div class="talent-card bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <div class="flex items-center mb-3">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white mr-3">
+                                <i class="fas fa-sparkles"></i>
+                            </div>
+                            <span class="font-medium text-gray-800">Elemental Skill</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Current</label>
+                                <select id="currentElementalSkill" class="w-full py-1 px-2 border border-gray-300 rounded-md text-sm">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Target</label>
+                                <select id="targetElementalSkill" class="w-full py-1 px-2 border border-gray-300 rounded-md text-sm">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10" selected>10</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Elemental Burst -->
+                    <div class="talent-card bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+                        <div class="flex items-center mb-3">
+                            <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white mr-3">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                            <span class="font-medium text-gray-800">Elemental Burst</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Current</label>
+                                <select id="currentElementalBurst" class="w-full py-1 px-2 border border-gray-300 rounded-md text-sm">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Target</label>
+                                <select id="targetElementalBurst" class="w-full py-1 px-2 border border-gray-300 rounded-md text-sm">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10" selected>10</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Drop Rates -->
+                <div class="mt-8">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Material Drop Rates</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Common Enemy Materials (avg per kill)</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="flex items-center">
+                                    <span class="text-xs text-gray-500 mr-1">Common:</span>
+                                    <input type="number" min="0" step="0.1" value="1.5" class="w-full py-1 px-2 border border-gray-300 rounded-md text-sm">
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-xs text-gray-500 mr-1">Uncommon:</span>
+                                    <input type="number" min="0" step="0.1" value="0.3" class="w-full py-1 px-2 border border-gray-300 rounded-md text-sm">
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-xs text-gray-500 mr-1">Rare:</span>
+                                    <input type="number" min="0" step="0.1" value="0.1" class="w-full py-1 px-2 border border-gray-300 rounded-md text-sm">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Talent Books (avg per run)</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="flex items-center">
+                                    <span class="text-xs text-gray-500 mr-1">Teachings:</span>
+                                    <input type="number" min="0" step="0.1" value="1.5" class="w-full py-1 px-2 border border-gray-300 rounded-md text-sm">
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-xs text-gray-500 mr-1">Guides:</span>
+                                    <input type="number" min="0" step="0.1" value="1.0" class="w-full py-1 px-2 border border-gray-300 rounded-md text-sm">
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-xs text-gray-500 mr-1">Philosophies:</span>
+                                    <input type="number" min="0" step="0.1" value="0.5" class="w-full py-1 px-2 border border-gray-300 rounded-md text-sm">
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+
+                <button id="calculateBtn" class="w-full mt-6 bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg font-medium transition-all duration-300 transform hover:scale-[1.01] shadow-md">
+                    <i class="fas fa-calculator mr-2"></i> Calculate Materials
+                </button>
+            </div>
+
+            <!-- Right Panel - Results -->
+            <div class="w-full lg:w-2/3">
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-800">
+                            <i class="fas fa-clipboard-list text-teal-500 mr-2"></i>
+                            Required Materials
+                        </h2>
+                        <div class="flex items-center space-x-2">
+                            <button id="saveBtn" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-save mr-1"></i> Save
+                            </button>
+                            <button id="loadBtn" class="text-blue-600 hover:text-blue-800 transition">
+                                <i class="fas fa-folder-open mr-1"></i> Load
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="resultsContainer" class="space-y-6">
+                        <!-- Empty State -->
+                        <div class="text-center py-12 text-gray-400">
+                            <i class="fas fa-calculator text-5xl mb-4 opacity-30"></i>
+                            <p class="text-lg">Adjust the settings and click "Calculate" to see results</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Summary Panel -->
+                <div id="summaryPanel" class="mt-6 bg-white rounded-xl shadow-md p-6 hidden">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-chart-pie text-amber-500 mr-2"></i>
+                        Summary of Runs Needed
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Enemy Kills -->
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div class="flex items-center mb-2">
+                                <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-500 mr-3">
+                                    <i class="fas fa-skull"></i>
+                                </div>
+                                <h3 class="font-medium">Enemy Kills Needed</h3>
+                            </div>
+                            <div id="enemyKills" class="pl-11 text-gray-700">
+                                <!-- Will be populated by JS -->
+                            </div>
+                        </div>
+                        
+                        <!-- Talent Domain -->
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div class="flex items-center mb-2">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-3">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <h3 class="font-medium">Talent Domain Runs</h3>
+                            </div>
+                            <div id="talentRuns" class="pl-11 text-gray-700">
+                                <!-- Will be populated by JS -->
+                            </div>
+                        </div>
+                        
+                        <!-- Weekly Boss -->
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div class="flex items-center mb-2">
+                                <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-500 mr-3">
+                                    <i class="fas fa-dungeon"></i>
+                                </div>
+                                <h3 class="font-medium">Weekly Boss Fights</h3>
+                            </div>
+                            <div id="bossFights" class="pl-11 text-gray-700">
+                                <!-- Will be populated by JS -->
+                            </div>
+                        </div>
+                        
+                        <!-- Local Specialties -->
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div class="flex items-center mb-2">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-500 mr-3">
+                                    <i class="fas fa-leaf"></i>
+                                </div>
+                                <h3 class="font-medium">Local Specialty Harvests</h3>
+                            </div>
+                            <div id="localHarvests" class="pl-11 text-gray-700">
+                                <!-- Will be populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const currentLevel = document.getElementById('currentLevel');
+        const targetLevel = document.getElementById('targetLevel');
+        const currentNormalAttack = document.getElementById('currentNormalAttack');
+        const targetNormalAttack = document.getElementById('targetNormalAttack');
+        const currentElementalSkill = document.getElementById('currentElementalSkill');
+        const targetElementalSkill = document.getElementById('targetElementalSkill');
+        const currentElementalBurst = document.getElementById('currentElementalBurst');
+        const targetElementalBurst = document.getElementById('targetElementalBurst');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const summaryPanel = document.getElementById('summaryPanel');
+        const resetBtn = document.getElementById('resetBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const loadBtn = document.getElementById('loadBtn');
+        
+        // Calculate Button
+        calculateBtn.addEventListener('click', () => {
+            calculateMaterials();
+        });
+        
+        // Reset Button
+        resetBtn.addEventListener('click', () => {
+            resetForm();
+        });
+        
+        // Save/Load Buttons
+        saveBtn.addEventListener('click', saveState);
+        loadBtn.addEventListener('click', loadState);
+        
+        // Material Calculation
+        function calculateMaterials() {
+            // Get values from inputs
+            const charName = document.getElementById('characterName').value || 'Unknown Character';
+            document.getElementById('characterNameDisplay').textContent = charName;
+            
+            const charLevel = parseInt(currentLevel.value);
+            const targetCharLevel = parseInt(targetLevel.value);
+            const currentNormal = parseInt(currentNormalAttack.value);
+            const targetNormal = parseInt(targetNormalAttack.value);
+            const currentSkill = parseInt(currentElementalSkill.value);
+            const targetSkill = parseInt(targetElementalSkill.value);
+            const currentBurst = parseInt(currentElementalBurst.value);
+            const targetBurst = parseInt(targetElementalBurst.value);
+            
+            // Calculate material requirements based on (simplified) Genshin Impact progression
+            const enemyMaterials = {
+                common: (ascension * 5) + (normal * 3) + (skill * 3) + (burst * 3),
+                uncommon: (ascension * 3) + (normal * 2) + (skill * 2) + (burst * 2),
+                rare: Math.floor(ascension / 2) + Math.floor(normal / 3) + Math.floor(skill / 3) + Math.floor(burst / 3)
+            };
+            
+            const talentBooks = {
+                teachings: normal * 2 + skill * 2 + burst * 2,
+                guides: normal * 2 + skill * 2 + burst * 2,
+                philosophies: Math.ceil(normal / 2) + Math.ceil(skill / 2) + Math.ceil(burst / 2)
+            };
+            
+            const weeklyBoss = Math.ceil(Math.max(normal, skill, burst) / 2);
+            
+            const specialties = ascension * 10;
+            
+            // Generate results HTML
+            let resultsHTML = `
+                <div class="mb-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                            <i class="fas fa-user text-gray-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-800">Character Summary</h3>
+                            <p class="text-sm text-gray-500" id="characterNameDisplay">Not specified</p>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                                <p class="text-gray-500">Ascension Level</p>
+                                <p class="font-bold text-blue-700">${ascension}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Normal Attack</p>
+                                <p class="font-bold text-amber-700">${normal}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Elemental Skill</p>
+                                <p class="font-bold text-blue-700">${skill}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Elemental Burst</p>
+                                <p class="font-bold text-purple-700">${burst}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Enemy Materials -->
+                    <div class="result-item">
+                        <div class="flex items-center mb-3">
+                            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-500 mr-3">
+                                <i class="fas fa-skull"></i>
+                            </div>
+                            <h3 class="font-medium text-gray-800">Enemy Materials</h3>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg overflow-hidden">
+                            <div class="grid grid-cols-1 divide-y divide-gray-200">
+                                <div class="p-3 flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <div class="w-6 h-6 bg-gray-300 rounded-full mr-2"></div>
+                                        <span>Common Materials</span>
+                                    </div>
+                                    <span class="font-bold">${enemyMaterials.common}</span>
+                                </div>
+                                <div class="p-3 flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <div class="w-6 h-6 bg-gray-400 rounded-full mr-2"></div>
+                                        <span>Uncommon Materials</span>
+                                    </div>
+                                    <span class="font-bold">${enemyMaterials.uncommon}</span>
+                                </div>
+                                <div class="p-3 flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <div class="w-6 h-6 bg-gray-500 rounded-full mr-2"></div>
+                                        <span>Rare Materials</span>
+                                    </div>
+                                    <span class="font-bold">${enemyMaterials.rare}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Talent Books -->
+                    <div class="result-item">
+                        <div class="flex items-center mb-3">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mr-3">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <h3 class="font-medium text-gray-800">Talent Books</h3>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg overflow-hidden">
+                            <div class="grid grid-cols-1 divide-y divide-gray-200">
+                                <div class="p-3 flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <div class="w-6 h-6 bg-blue-300 rounded-full mr-2"></div>
+                                        <span>Teachings</span>
+                                    </div>
+                                    <span class="font-bold">${talentBooks.teachings}</span>
+                                </div>
+                                <div class="p-3 flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <div class="w-6 h-6 bg-blue-400 rounded-full mr-2"></div>
+                                        <span>Guides</span>
+                                    </div>
+                                    <span class="font-bold">${talentBooks.guides}</span>
+                                </div>
+                                <div class="p-3 flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <div class="w-6 h-6 bg-blue-500 rounded-full mr-2"></div>
+                                        <span>Philosophies</span>
+                                    </div>
+                                    <span class="font-bold">${talentBooks.philosophies}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Boss Materials -->
+                    <div class="result-item">
+                        <div class="flex items-center mb-3">
+                            <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-500 mr-3">
+                                <i class="fas fa-dungeon"></i>
+                            </div>
+                            <h3 class="font-medium text-gray-800">Boss Materials</h3>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg overflow-hidden">
+                            <div class="grid grid-cols-1 divide-y divide-gray-200">
+                                <div class="p-3 flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <div class="w-6 h-6 bg-purple-300 rounded-full mr-2"></div>
+                                        <span>Weekly Boss Drops</span>
+                                    </div>
+                                    <span class="font-bold">${weeklyBoss}</span>
+                                </div>
+                                <div class="p-3 flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <div class="w-6 h-6 bg-amber-300 rounded-full mr-2"></div>
+                                        <span>Crown of Insight</span>
+                                    </div>
+                                    <span class="font-bold">${Math.max(normal - 9, 0) + Math.max(skill - 9, 0) + Math.max(burst - 9, 0)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Other Materials -->
+                    <div class="result-item">
+                        <div class="flex items-center mb-3">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-500 mr-3">
+                                <i class="fas fa-leaf"></i>
+                            </div>
+                            <h3 class="font-medium text-gray-800">Other Materials</h3>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg overflow-hidden">
+                            <div class="grid grid-cols-1 divide-y divide-gray-200">
+                                <div class="p-3 flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <div class="w-6 h-6 bg-green-300 rounded-full mr-2"></div>
+                                        <span>Local Specialties</span>
+                                    </div>
+                                    <span class="font-bold">${specialties}</span>
+                                </div>
+                                <div class="p-3 flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <div class="w-6 h-6 bg-yellow-300 rounded-full mr-2"></div>
+                                        <span>Mora (estimated)</span>
+                                    </div>
+                                    <span class="font-bold">${(enemyMaterials.common * 1000) + (enemyMaterials.uncommon * 2000) + (enemyMaterials.rare * 5000) + (talentBooks.teachings * 5000) + (talentBooks.guides * 7500) + (talentBooks.philosophies * 12500) + (weeklyBoss * 10000) + (specialties * 2000)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Show results panel
+            document.getElementById('resultsPanel').classList.remove('hidden');
+            
+            // Set character name
+            document.getElementById('characterNameDisplay').textContent = charName;
+
+            // Populate materials dropdown
+            const materialsList = document.getElementById('materialsList');
+            materialsList.innerHTML = `
+                <div class="flex justify-between items-center py-2">
+                    <div class="flex items-center">
+                        <span class="w-4 h-4 bg-gray-300 rounded-full mr-2"></span>
+                        <span>Common Enemy Materials: ${enemyMaterials.common}</span>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <div class="flex items-center">
+                        <span class="w-4 h-4 bg-gray-400 rounded-full mr-2"></span>
+                        <span>Uncommon Enemy Materials: ${enemyMaterials.uncommon}</span>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <div class="flex items-center">
+                        <span class="w-4 h-4 bg-gray-500 rounded-full mr-2"></span>
+                        <span>Rare Enemy Materials: ${enemyMaterials.rare}</span>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <div class="flex items-center">
+                        <span class="w-4 h-4 bg-blue-300 rounded-full mr-2"></span>
+                        <span>Teachings: ${talentBooks.teachings}</span>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <div class="flex items-center">
+                        <span class="w-4 h-4 bg-blue-400 rounded-full mr-2"></span>
+                        <span>Guides: ${talentBooks.guides}</span>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <div class="flex items-center">
+                        <span class="w-4 h-4 bg-blue-500 rounded-full mr-2"></span>
+                        <span>Philosophies: ${talentBooks.philosophies}</span>
+                    </div>
+                </div>
+            `;
+
+            // Add dropdown toggle functionality
+            document.getElementById('characterDropdownBtn').addEventListener('click', function() {
+                const dropdown = document.getElementById('materialsDropdown');
+                const icon = document.getElementById('dropdownIcon');
+                dropdown.classList.toggle('hidden');
+                icon.classList.toggle('fa-chevron-down');
+                icon.classList.toggle('fa-chevron-up');
+            });
+            
+            // Calculate runs needed
+            const commonPerKill = parseFloat(document.querySelector('input[placeholder="Common:"]').value) || 1.5;
+            const uncommonPerKill = parseFloat(document.querySelector('input[placeholder="Uncommon:"]').value) || 0.3;
+            const rarePerKill = parseFloat(document.querySelector('input[placeholder="Rare:"]').value) || 0.1;
+            
+            const teachingsPerRun = parseFloat(document.querySelector('input[placeholder="Teachings:"]').value) || 1.5;
+            const guidesPerRun = parseFloat(document.querySelector('input[placeholder="Guides:"]').value) || 1.0;
+            const philosophiesPerRun = parseFloat(document.querySelector('input[placeholder="Philosophies:"]').value) || 0.5;
+            
+            const specialtiesPerHarvest = parseFloat(document.querySelector('input[placeholder="Local Specialties"]').value) || 2.0;
+            
+            document.getElementById('enemyKills').innerHTML = `
+                <div class="mb-1">Common: <span class="font-bold">${Math.ceil(enemyMaterials.common / commonPerKill)} kills</span></div>
+                <div class="mb-1">Uncommon: <span class="font-bold">${Math.ceil(enemyMaterials.uncommon / uncommonPerKill)} kills</span></div>
+                <div>Rare: <span class="font-bold">${Math.ceil(enemyMaterials.rare / rarePerKill)} kills</span></div>
+            `;
+            
+            document.getElementById('talentRuns').innerHTML = `
+                <div class="mb-1">Teachings: <span class="font-bold">${Math.ceil(talentBooks.teachings / teachingsPerRun)} runs</span></div>
+                <div class="mb-1">Guides: <span class="font-bold">${Math.ceil(talentBooks.guides / guidesPerRun)} runs</span></div>
+                <div>Philosophies: <span class="font-bold">${Math.ceil(talentBooks.philosophies / philosophiesPerRun)} runs</span></div>
+            `;
+            
+            document.getElementById('bossFights').innerHTML = `
+                <div>Weekly Boss Fights: <span class="font-bold">${weeklyBoss}</span></div>
+            `;
+            
+            document.getElementById('localHarvests').innerHTML = `
+                <div>Local Specialties: <span class="font-bold">${Math.ceil(specialties / specialtiesPerHarvest)} harvests</span></div>
+            `;
+        }
+        
+        // Reset Form
+        function resetForm() {
+            currentLevel.value = 1;
+            targetLevel.value = 90;
+            currentNormalAttack.value = 1;
+            targetNormalAttack.value = 1;
+            currentElementalSkill.value = 1;
+            targetElementalSkill.value = 1;
+            currentElementalBurst.value = 1;
+            targetElementalBurst.value = 1;
+            
+            // Reset drop rates
+            const rateInputs = document.querySelectorAll('input[type="number"]');
+            rateInputs.forEach(input => {
+                if (input.placeholder.includes('Common:')) input.value = '1.5';
+                else if (input.placeholder.includes('Uncommon:')) input.value = '0.3';
+                else if (input.placeholder.includes('Rare:')) input.value = '0.1';
+                else if (input.placeholder.includes('Teachings:')) input.value = '1.5';
+                else if (input.placeholder.includes('Guides:')) input.value = '1.0';
+                else if (input.placeholder.includes('Philosophies:')) input.value = '0.5';
+                else if (input.placeholder.includes('Local Specialties')) input.value = '2.0';
+            });
+            
+            document.getElementById('resultsPanel').classList.add('hidden');
+        }
+        
+        // Save/Load functionality
+        function saveState() {
+            const state = {
+                currentLevel: currentLevel.value,
+                targetLevel: targetLevel.value,
+                currentNormalAttack: currentNormalAttack.value,
+                targetNormalAttack: targetNormalAttack.value,
+                currentElementalSkill: currentElementalSkill.value,
+                targetElementalSkill: targetElementalSkill.value,
+                currentElementalBurst: currentElementalBurst.value,
+                targetElementalBurst: targetElementalBurst.value,
+                rates: {
+                    common: document.querySelector('input[placeholder="Common:"]').value,
+                    uncommon: document.querySelector('input[placeholder="Uncommon:"]').value,
+                    rare: document.querySelector('input[placeholder="Rare:"]').value,
+                    teachings: document.querySelector('input[placeholder="Teachings:"]').value,
+                    guides: document.querySelector('input[placeholder="Guides:"]').value,
+                    philosophies: document.querySelector('input[placeholder="Philosophies:"]').value,
+                    specialties: document.querySelector('input[placeholder="Local Specialties"]').value
+                }
+            };
+            
+            localStorage.setItem('genshinTalentPlanner', JSON.stringify(state));
+            
+            // Show notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center animate-fade-in';
+            notification.innerHTML = `
+                <i class="fas fa-check-circle mr-2"></i>
+                <span>Settings saved!</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('animate-fade-out');
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+        
+        function loadState() {
+            const savedState = localStorage.getItem('genshinTalentPlanner');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                
+                ascensionLevel.value = state.ascension;
+                ascensionValue.textContent = state.ascension;
+                normalAttack.value = state.normal;
+                normalAttackValue.textContent = state.normal;
+                elementalSkill.value = state.skill;
+                elementalSkillValue.textContent = state.skill;
+                elementalBurst.value = state.burst;
+                elementalBurstValue.textContent = state.burst;
+                
+                document.querySelector('input[placeholder="Common:"]').value = state.rates.common;
+                document.querySelector('input[placeholder="Uncommon:"]').value = state.rates.uncommon;
+                document.querySelector('input[placeholder="Rare:"]').value = state.rates.rare;
+                document.querySelector('input[placeholder="Teachings:"]').value = state.rates.teachings;
+                document.querySelector('input[placeholder="Guides:"]').value = state.rates.guides;
+                document.querySelector('input[placeholder="Philosophies:"]').value = state.rates.philosophies;
+                document.querySelector('input[placeholder="Local Specialties"]').value = state.rates.specialties;
+                
+                // Show notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center animate-fade-in';
+                notification.innerHTML = `
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span>Settings loaded!</span>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.classList.add('animate-fade-out');
+                    setTimeout(() => notification.remove(), 500);
+                }, 3000);
+            } else {
+                // Show error notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center animate-fade-in';
+                notification.innerHTML = `
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    <span>No saved settings found!</span>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.classList.add('animate-fade-out');
+                    setTimeout(() => notification.remove(), 500);
+                }, 3000);
+            }
+        }
+        
+        // Character presets (simplified for this demo)
+        document.querySelectorAll('.preset-character').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const character = btn.textContent.trim();
+                
+                // Show notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 bg-teal-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center animate-fade-in';
+                notification.innerHTML = `
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span>Loading ${character} preset...</span>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.classList.add('animate-fade-out');
+                    setTimeout(() => notification.remove(), 500);
+                }, 3000);
+                
+                // Just set some values for the demo - in a real app this would have actual preset values
+                ascensionLevel.value = 6;
+                ascensionValue.textContent = '6';
+                normalAttack.value = 10;
+                normalAttackValue.textContent = '10';
+                elementalSkill.value = 9;
+                elementalSkillValue.textContent = '9';
+                elementalBurst.value = 9;
+                elementalBurstValue.textContent = '9';
+                
+                document.querySelector('input[placeholder="Common:"]').value = '1.2';
+                document.querySelector('input[placeholder="Uncommon:"]').value = '0.4';
+                document.querySelector('input[placeholder="Rare:"]').value = '0.08';
+            });
+        });
+    </script>
+</body>
+</html>
